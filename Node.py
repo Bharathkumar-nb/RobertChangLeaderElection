@@ -32,7 +32,6 @@ class Node(object):
         
 
         if self.initiator:
-            
             print('send_id.'+self.nid+"."+self._id)
             self.mqtt_client.publish(self.mqtt_topic, 'send_id.'+self.nid+"."+self._id)
             self.main = False
@@ -56,7 +55,7 @@ class Node(object):
         pass
 
     def on_message(self, client, userdata, msg):
-        print(msg.payload)
+        #print(msg.payload)
         # send_id.nid.k, send_leader.nid.k
         msg,rid,payload = msg.payload.split('.')
         if rid == self._id:
@@ -65,8 +64,9 @@ class Node(object):
                     print('log_deciding.'+self._id+'.'+payload)
                     if payload<self._id:
                         print ('log_drop.'+self._id+'.'+payload)
-                        print('send_id.'+self.nid+"."+self._id)
-                        self.mqtt_client.publish(self.mqtt_topic, 'send_id.'+self.nid+"."+self._id)
+                        if not self.initiator:
+                            print('send_id.'+self.nid+"."+self._id)
+                            self.mqtt_client.publish(self.mqtt_topic, 'send_id.'+self.nid+"."+self._id)
                     elif payload>self._id:
                         print('send_id.'+self.nid+"."+payload)
                         self.mqtt_client.publish(self.mqtt_topic, 'send_id.'+self.nid+"."+payload)
