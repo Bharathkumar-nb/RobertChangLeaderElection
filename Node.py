@@ -2,6 +2,18 @@ import time, socket, sys
 from datetime import datetime as dt
 import paho.mqtt.client as paho
 import signal
+import mraa
+
+# Init LEDs
+leds = []
+for i in range(2,10):
+    led = mraa.Gpio(i)
+    leds.append(led)
+
+# Constants
+CONTENTION = 0
+BOWOUT = 2
+LEADER = 4
 
 class Node(object):
     """docstring for Fork"""
@@ -25,16 +37,15 @@ class Node(object):
         self.mqtt_client.subscribe('kappa/node')
         self.mqtt_client.loop_start()
 
-        self.main = self.initiator
         self.bowout = False
         self.working = False
         self.waitforroundtrip = False
+        self.turnOnLED(CONTENTION)
         
 
         if self.initiator:
             print('send_id.'+self.nid+"."+self._id)
             self.mqtt_client.publish(self.mqtt_topic, 'send_id.'+self.nid+"."+self._id)
-            self.main = False
 
     # Deal with control-c
     def control_c_handler(self, signum, frame):
@@ -55,15 +66,19 @@ class Node(object):
         pass
 
     def on_message(self, client, userdata, msg):
-        #print(msg.payload)
-        # send_id.nid.k, send_leader.nid.k
-        msg,rid,payload = msg.payload.split('.')
+        tokens = msg.payload.split('.')
+        if len(tokens) == 3:
+            msg,rid,payload = tokens
+        else:
+            pass
+        # print(rid, self._id, rid == self._id)
         if rid == self._id:
             if not self.bowout:
                 if msg =='send_id':
                     print('log_deciding.'+self._id+'.'+payload)
                     if payload<self._id:
                         print ('log_drop.'+self._id+'.'+payload)
+                        self.mqtt_client.publish(self.mqtt_topic, 'log_drop.'+self._id+'.'+payload)
                         if not self.initiator:
                             print('send_id.'+self.nid+"."+self._id)
                             self.mqtt_client.publish(self.mqtt_topic, 'send_id.'+self.nid+"."+self._id)
@@ -71,8 +86,13 @@ class Node(object):
                         print('send_id.'+self.nid+"."+payload)
                         self.mqtt_client.publish(self.mqtt_topic, 'send_id.'+self.nid+"."+payload)
                         self.bowout = True
+                        self.turnOffLED(CONTENTION)
+                        self.turnOnLED(BOWOUT)
                     else: 
                         print('log_i_am_leader.'+self._id)
+                        self.turnOffLED(CONTENTION)
+                        self.turnOnLED(LEADER)
+                        self.mqtt_client.publish(self.mqtt_topic, 'log_i_am_leader.'+self._id)
                         print('send_leader.'+self.nid+"."+self._id)
                         self.mqtt_client.publish(self.mqtt_topic, 'send_leader.'+self.nid+"."+self._id)
                         self.waitforroundtrip = True
@@ -82,8 +102,12 @@ class Node(object):
                         self.working = True
                     else:
                         print ('log_all_informed.'+self._id)
+                        self.mqtt_client.publish(self.mqtt_topic, 'log_all_informed.'+self._id)
+
                     print ('log_do_real_work.'+self._id+'.'+payload)
+                    self.mqtt_client.publish(self.mqtt_topic, 'log_do_real_work.'+self._id+'.'+payload)
                     print ('log_waiting')
+                    self.mqtt_client.publish(self.mqtt_topic, 'log_waiting')
                         
             else :
                 if msg =='send_id':
@@ -95,14 +119,16 @@ class Node(object):
                         self.mqtt_client.publish(self.mqtt_topic, 'send_leader.'+self.nid+"."+payload)
                         self.working = True
                         print ('log_do_real_work.'+self._id+'.'+payload)
+                        self.mqtt_client.publish(self.mqtt_topic, 'log_do_real_work.'+self._id+'.'+payload)
                         print ('log_waiting')
+                        self.mqtt_client.publish(self.mqtt_topic, 'log_waiting')
 
     # LED functions
-    def turnOnLED(self):
-        leds[self.led_no].write(0)
+    def turnOnLED(self, led_no):
+        leds[led_no].write(0)
 
-    def turnOffLED(self):
-        leds[self.led_no].write(1)
+    def turnOffLED(self, led_no):
+        leds[led_no].write(1)
 
 
 def main():
@@ -114,9 +140,7 @@ def main():
         print ('Please enter valid number 0 or 1')
         sys.exit(1)
 
-    Node(0,1,0)
-    Node(2,0,0)
-    Node(1,2,1)
+    Node(arr[1],arr[2],arr[3])
     
     while True:
         time.sleep(10)
