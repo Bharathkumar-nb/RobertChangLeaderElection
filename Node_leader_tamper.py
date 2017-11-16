@@ -96,8 +96,12 @@ class Node(object):
                             self.waitforroundtrip = True
                     if msg =='send_leader':
                         if not self.waitforroundtrip:
-                            print('send_leader.'+self.nid+"."+payload)
-                            self.mqtt_client.publish(self.mqtt_topic, 'send_leader.'+self.nid+"."+payload)
+                            print('log_i_am_leader.'+self._id)
+                            self.turnOffLED(CONTENTION)
+                            self.turnOnLED(LEADER)
+                            self.mqtt_client.publish(self.mqtt_topic, 'log_i_am_leader.'+self._id)
+                            print('send_leader.'+self.nid+"."+self._id)
+                            self.mqtt_client.publish(self.mqtt_topic, 'send_leader.'+self.nid+"."+self._id)
                             self.working = True
                             print ('log_do_real_work.'+self._id+'.'+payload)
                             self.mqtt_client.publish(self.mqtt_topic, 'log_do_real_work.'+self._id+'.'+payload)
