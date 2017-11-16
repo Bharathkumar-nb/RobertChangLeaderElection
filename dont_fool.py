@@ -1,6 +1,7 @@
 import time, socket, sys
 from datetime import datetime as dt
 import paho.mqtt.client as paho
+import Tkinter as tk
 import signal
 
 # Constants
@@ -23,6 +24,12 @@ class DontFool(object):
         self.mqtt_client.subscribe('kappa/node')
         self.mqtt_client.loop_start()
 
+        # Tkinter initialization
+        self.root = tk.Tk()
+        self.status = tk.Label(self.root, text="Leader Tampering\n\n", justify="left")
+        self.status.grid()
+        self.root.minsize(400, 400)
+        self.root.mainloop()
 
     # Deal with control-c
     def control_c_handler(self, signum, frame):
@@ -48,10 +55,25 @@ class DontFool(object):
             msg, rid, payload = tokens
             if msg == 'send_leader':
                 if payload != LEADER:
-                    assert('Assert')
+                    self.root.after(500, self.gui_update())
+                    print('Assert')
+
+    def gui_update(self):
+        self.current_status = self.status["text"]
+        self.current_status += 'ERROR: Violation of LTL property\n'
+        self.current_status += 'Traces for error\n'
+        isFirstIteration = True
+        for trace in self.traces:
+            if not isFirstIteration:
+                self.current_status +=  " -> "
+            else:
+                isFirstIteration = False
+                self.current_status +=  "      "
+            self.current_status +=  trace + '\n'
+        self.current_status += '\n\n'
+        self.status["text"] = self.current_status
 
 def main():
-
     DontFool()
     
     while True:

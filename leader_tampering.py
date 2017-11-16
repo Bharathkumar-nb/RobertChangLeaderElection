@@ -1,12 +1,14 @@
 import time, socket, sys
 from datetime import datetime as dt
 import paho.mqtt.client as paho
+import Tkinter as tk
 import signal
 
-class OneLeader(object):
+class LeaderTamper(object):
     """docstring for Fork"""
     def __init__(self):
         self.currentLeader = None
+        self.traces = []
 
         signal.signal(signal.SIGINT, self.control_c_handler)
 
@@ -22,6 +24,12 @@ class OneLeader(object):
         self.mqtt_client.subscribe('kappa/node')
         self.mqtt_client.loop_start()
 
+        # Tkinter initialization
+        self.root = tk.Tk()
+        self.status = tk.Label(self.root, text="Leader Tampering\n\n", justify="left")
+        self.status.grid()
+        self.root.minsize(400, 400)
+        self.root.mainloop()
 
     # Deal with control-c
     def control_c_handler(self, signum, frame):
@@ -42,6 +50,7 @@ class OneLeader(object):
         pass
 
     def on_message(self, client, userdata, msg):
+        self.traces.append(msg)
         tokens = msg.payload.split('.')
         if len(tokens) == 3:
             msg, rid, payload = tokens
@@ -49,11 +58,27 @@ class OneLeader(object):
                 if not self.currentLeader:
                     self.currentLeader = payload
                 elif payload != self.currentLeader:
+                    self.root.after(500, self.gui_update())
                     print('Assert')
+
+    def gui_update(self):
+        self.current_status = self.status["text"]
+        self.current_status += 'ERROR: Violation of LTL property\n'
+        self.current_status += 'Traces for error\n'
+        isFirstIteration = True
+        for trace in self.traces:
+            if not isFirstIteration:
+                self.current_status +=  " -> "
+            else:
+                isFirstIteration = False
+                self.current_status +=  "      "
+            self.current_status +=  trace + '\n'
+        self.current_status += '\n\n'
+        self.status["text"] = self.current_status
 
 def main():
 
-    OneLeader()
+    LeaderTamper()
     
     while True:
         time.sleep(10)
