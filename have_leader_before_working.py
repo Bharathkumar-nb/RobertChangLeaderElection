@@ -53,7 +53,7 @@ class OneLeader(object):
     def on_message(self, client, userdata, msg):
         self.traces.append(msg.payload)
         tokens = msg.payload.split('.')
-        msg, _ = tokens
+        msg = tokens[0]
         if msg == 'log_i_am_leader':
             self.leader = True
         if msg == 'log_do_real_work':

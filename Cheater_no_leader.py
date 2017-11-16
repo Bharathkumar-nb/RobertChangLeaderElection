@@ -75,10 +75,7 @@ class CheaterNode(object):
                 if msg =='send_id' and not self.done:
                     print('send_id.'+self.nid+"."+self._id)
                     self.mqtt_client.publish(self.mqtt_topic, 'send_id.'+self.nid+"."+self._id)
-                    print('log_i_am_leader.'+self._id)
-                    self.mqtt_client.publish(self.mqtt_topic, 'log_i_am_leader.'+self._id)
                     self.turnOffLED(CONTENTION)
-                    self.turnOnLED(LEADER)
                     print('send_leader.'+self.nid+"."+self._id)
                     self.mqtt_client.publish(self.mqtt_topic, 'send_leader.'+self.nid+"."+self._id)
                     print ('log_do_real_work.'+self._id+'.'+self._id)
