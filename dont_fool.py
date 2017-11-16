@@ -10,6 +10,8 @@ LEADER = '2'
 class DontFool(object):
     """docstring for Fork"""
     def __init__(self):
+        self.traces = []
+
         signal.signal(signal.SIGINT, self.control_c_handler)
 
         # MQTT initialization
@@ -26,7 +28,7 @@ class DontFool(object):
 
         # Tkinter initialization
         self.root = tk.Tk()
-        self.status = tk.Label(self.root, text="Leader Tampering\n\n", justify="left")
+        self.status = tk.Label(self.root, text="Catch Cheater\n\n", justify="left")
         self.status.grid()
         self.root.minsize(400, 400)
         self.root.mainloop()
@@ -50,6 +52,7 @@ class DontFool(object):
         pass
 
     def on_message(self, client, userdata, msg):
+        self.traces.append(msg)
         tokens = msg.payload.split('.')
         if len(tokens) == 3:
             msg, rid, payload = tokens
