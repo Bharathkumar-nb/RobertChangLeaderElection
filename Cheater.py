@@ -75,7 +75,7 @@ class CheaterNode(object):
         # send_id.nid.k, send_leader.nid.k
         msg,rid,payload = msg.payload.split('.')
         if rid == self._id:
-            if msg =='send_id' && not self.done:
+            if msg =='send_id' and not self.done:
                 print('send_id.'+self.nid+"."+self._id)
                 self.mqtt_client.publish(self.mqtt_topic, 'send_id.'+self.nid+"."+self._id)
                 print('log_i_am_leader.'+self._id)
