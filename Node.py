@@ -69,59 +69,57 @@ class Node(object):
         tokens = msg.payload.split('.')
         if len(tokens) == 3:
             msg,rid,payload = tokens
-        else:
-            pass
-        # print(rid, self._id, rid == self._id)
-        if rid == self._id:
-            if not self.bowout:
-                if msg =='send_id':
-                    print('log_deciding.'+self._id+'.'+payload)
-                    if payload<self._id:
-                        print ('log_drop.'+self._id+'.'+payload)
-                        self.mqtt_client.publish(self.mqtt_topic, 'log_drop.'+self._id+'.'+payload)
-                        if not self.initiator:
-                            print('send_id.'+self.nid+"."+self._id)
-                            self.mqtt_client.publish(self.mqtt_topic, 'send_id.'+self.nid+"."+self._id)
-                    elif payload>self._id:
-                        print('send_id.'+self.nid+"."+payload)
-                        self.mqtt_client.publish(self.mqtt_topic, 'send_id.'+self.nid+"."+payload)
-                        self.bowout = True
-                        self.turnOffLED(CONTENTION)
-                        self.turnOnLED(BOWOUT)
-                    else: 
-                        print('log_i_am_leader.'+self._id)
-                        self.turnOffLED(CONTENTION)
-                        self.turnOnLED(LEADER)
-                        self.mqtt_client.publish(self.mqtt_topic, 'log_i_am_leader.'+self._id)
-                        print('send_leader.'+self.nid+"."+self._id)
-                        self.mqtt_client.publish(self.mqtt_topic, 'send_leader.'+self.nid+"."+self._id)
-                        self.waitforroundtrip = True
-                if msg =='send_leader':
-                    if not self.waitforroundtrip:
-                        self.mqtt_client.publish(self.mqtt_topic, 'send_leader.'+self.nid+"."+payload)
-                        self.working = True
-                    else:
-                        print ('log_all_informed.'+self._id)
-                        self.mqtt_client.publish(self.mqtt_topic, 'log_all_informed.'+self._id)
 
-                    print ('log_do_real_work.'+self._id+'.'+payload)
-                    self.mqtt_client.publish(self.mqtt_topic, 'log_do_real_work.'+self._id+'.'+payload)
-                    print ('log_waiting')
-                    self.mqtt_client.publish(self.mqtt_topic, 'log_waiting')
-                        
-            else :
-                if msg =='send_id':
-                    print('send_id.'+self.nid+"."+payload)
-                    self.mqtt_client.publish(self.mqtt_topic,'send_id.'+self.nid+"."+payload)
-                if msg == 'send_leader' :
-                    if not self.working:
-                        print('send_leader.'+self.nid+"."+payload)
-                        self.mqtt_client.publish(self.mqtt_topic, 'send_leader.'+self.nid+"."+payload)
-                        self.working = True
+            if rid == self._id:
+                if not self.bowout:
+                    if msg =='send_id':
+                        print('log_deciding.'+self._id+'.'+payload)
+                        if payload<self._id:
+                            print ('log_drop.'+self._id+'.'+payload)
+                            self.mqtt_client.publish(self.mqtt_topic, 'log_drop.'+self._id+'.'+payload)
+                            if not self.initiator:
+                                print('send_id.'+self.nid+"."+self._id)
+                                self.mqtt_client.publish(self.mqtt_topic, 'send_id.'+self.nid+"."+self._id)
+                        elif payload>self._id:
+                            print('send_id.'+self.nid+"."+payload)
+                            self.mqtt_client.publish(self.mqtt_topic, 'send_id.'+self.nid+"."+payload)
+                            self.bowout = True
+                            self.turnOffLED(CONTENTION)
+                            self.turnOnLED(BOWOUT)
+                        else: 
+                            print('log_i_am_leader.'+self._id)
+                            self.turnOffLED(CONTENTION)
+                            self.turnOnLED(LEADER)
+                            self.mqtt_client.publish(self.mqtt_topic, 'log_i_am_leader.'+self._id)
+                            print('send_leader.'+self.nid+"."+self._id)
+                            self.mqtt_client.publish(self.mqtt_topic, 'send_leader.'+self.nid+"."+self._id)
+                            self.waitforroundtrip = True
+                    if msg =='send_leader':
+                        if not self.waitforroundtrip:
+                            self.mqtt_client.publish(self.mqtt_topic, 'send_leader.'+self.nid+"."+payload)
+                            self.working = True
+                        else:
+                            print ('log_all_informed.'+self._id)
+                            self.mqtt_client.publish(self.mqtt_topic, 'log_all_informed.'+self._id)
+
                         print ('log_do_real_work.'+self._id+'.'+payload)
                         self.mqtt_client.publish(self.mqtt_topic, 'log_do_real_work.'+self._id+'.'+payload)
                         print ('log_waiting')
                         self.mqtt_client.publish(self.mqtt_topic, 'log_waiting')
+                            
+                else :
+                    if msg =='send_id':
+                        print('send_id.'+self.nid+"."+payload)
+                        self.mqtt_client.publish(self.mqtt_topic,'send_id.'+self.nid+"."+payload)
+                    if msg == 'send_leader' :
+                        if not self.working:
+                            print('send_leader.'+self.nid+"."+payload)
+                            self.mqtt_client.publish(self.mqtt_topic, 'send_leader.'+self.nid+"."+payload)
+                            self.working = True
+                            print ('log_do_real_work.'+self._id+'.'+payload)
+                            self.mqtt_client.publish(self.mqtt_topic, 'log_do_real_work.'+self._id+'.'+payload)
+                            print ('log_waiting')
+                            self.mqtt_client.publish(self.mqtt_topic, 'log_waiting')
 
     # LED functions
     def turnOnLED(self, led_no):
