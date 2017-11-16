@@ -11,6 +11,7 @@ class OneLeader(object):
         self.node_payload = {}
         self.init_receiver_to_sender()
         self.traces = []
+        self.count = 0
         
         signal.signal(signal.SIGINT, self.control_c_handler)
 
@@ -58,16 +59,20 @@ class OneLeader(object):
             msg, rid, payload = tokens
             if msg == 'send_id':
                 sender_id = self.receiver_to_sender[rid]
+                print(payload, sender_id, payload<sender_id)
                 if payload < sender_id:
                     self.root.after(500, self.gui_update())
                     print('Assert: payload < sender_id')
-                elif self.node_payload[sender_id] and payload < self.node_payload[sender_id]:
+                elif self.node_payload[sender_id] and payload <= self.node_payload[sender_id]:
                     self.root.after(500, self.gui_update())
                     print('Assert')
                 else:
                     self.node_payload[sender_id] = payload
 
     def gui_update(self):
+        if self.count == 1:
+            return
+        self.count += 1
         current_status = self.status["text"]
         current_status += 'ERROR: Violation of LTL property\n'
         current_status += 'Traces for error\n'
@@ -86,7 +91,7 @@ class OneLeader(object):
     def init_receiver_to_sender(self):
         with open('ring.txt') as f:
             for line in f.readlines():
-                receiver, sender = line.split('->')
+                sender, receiver = line.strip().split('->')
                 self.receiver_to_sender[receiver] = sender
                 self.node_payload[sender] = None
 
