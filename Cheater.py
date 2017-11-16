@@ -71,22 +71,22 @@ class CheaterNode(object):
         pass
 
     def on_message(self, client, userdata, msg):
-        #print(msg.payload)
-        # send_id.nid.k, send_leader.nid.k
-        msg,rid,payload = msg.payload.split('.')
-        if rid == self._id:
-            if msg =='send_id' and not self.done:
-                print('send_id.'+self.nid+"."+self._id)
-                self.mqtt_client.publish(self.mqtt_topic, 'send_id.'+self.nid+"."+self._id)
-                print('log_i_am_leader.'+self._id)
-                self.mqtt_client.publish(self.mqtt_topic, 'log_i_am_leader.'+self._id)
-                self.turnOffLED(CONTENTION)
-                self.turnOnLED(LEADER)
-                print('send_leader.'+self.nid+"."+self._id)
-                self.mqtt_client.publish(self.mqtt_topic, 'send_leader.'+self.nid+"."+self._id)
-                print ('log_do_real_work.'+self._id+'.'+self._id)
-                self.mqtt_client.publish(self.mqtt_topic, 'log_do_real_work.'+self._id+'.'+self._id)
-                self.done = True
+        tokens = msg.payload.split('.')
+        if len(tokens) == 3:
+            msg,rid,payload = tokens
+            if rid == self._id:
+                if msg =='send_id' and not self.done:
+                    print('send_id.'+self.nid+"."+self._id)
+                    self.mqtt_client.publish(self.mqtt_topic, 'send_id.'+self.nid+"."+self._id)
+                    print('log_i_am_leader.'+self._id)
+                    self.mqtt_client.publish(self.mqtt_topic, 'log_i_am_leader.'+self._id)
+                    self.turnOffLED(CONTENTION)
+                    self.turnOnLED(LEADER)
+                    print('send_leader.'+self.nid+"."+self._id)
+                    self.mqtt_client.publish(self.mqtt_topic, 'send_leader.'+self.nid+"."+self._id)
+                    print ('log_do_real_work.'+self._id+'.'+self._id)
+                    self.mqtt_client.publish(self.mqtt_topic, 'log_do_real_work.'+self._id+'.'+self._id)
+                    self.done = True
 
     # LED functions
     def turnOnLED(self, led_no):
