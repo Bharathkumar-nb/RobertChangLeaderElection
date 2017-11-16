@@ -8,6 +8,7 @@ class OneLeader(object):
     """docstring for Fork"""
     def __init__(self):
         self.currentLeader = None
+        self.traces = []
 
         signal.signal(signal.SIGINT, self.control_c_handler)
 
@@ -25,7 +26,7 @@ class OneLeader(object):
 
         # Tkinter initialization
         self.root = tk.Tk()
-        self.status = tk.Label(self.root, text="Leader Tampering\n\n", justify="left")
+        self.status = tk.Label(self.root, text="One Leader\n\n", justify="left")
         self.status.grid()
         self.root.minsize(400, 400)
         self.root.mainloop()
@@ -49,6 +50,7 @@ class OneLeader(object):
         pass
 
     def on_message(self, client, userdata, msg):
+        self.traces.append(msg.payload)
         tokens = msg.payload.split('.')
         if len(tokens) == 2:
             msg, _id = tokens
@@ -60,19 +62,19 @@ class OneLeader(object):
                     print('Assert')
 
     def gui_update(self):
-        self.current_status = self.status["text"]
-        self.current_status += 'ERROR: Violation of LTL property\n'
-        self.current_status += 'Traces for error\n'
+        current_status = self.status["text"]
+        current_status += 'ERROR: Violation of LTL property\n'
+        current_status += 'Traces for error\n'
         isFirstIteration = True
         for trace in self.traces:
             if not isFirstIteration:
-                self.current_status +=  " -> "
+                current_status +=  " -> "
             else:
                 isFirstIteration = False
-                self.current_status +=  "      "
-            self.current_status +=  trace + '\n'
-        self.current_status += '\n\n'
-        self.status["text"] = self.current_status
+                current_status +=  "      "
+            current_status +=  trace + '\n'
+        current_status += '\n\n'
+        self.status["text"] = current_status
 
 def main():
 

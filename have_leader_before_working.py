@@ -51,7 +51,7 @@ class OneLeader(object):
         pass
 
     def on_message(self, client, userdata, msg):
-        self.traces.append(msg)
+        self.traces.append(msg.payload)
         tokens = msg.payload.split('.')
         msg, _ = tokens
         if msg == 'log_i_am_leader':
@@ -62,19 +62,19 @@ class OneLeader(object):
                 print("Assert")
 
     def gui_update(self):
-        self.current_status = self.status["text"]
-        self.current_status += 'ERROR: Violation of LTL property\n'
-        self.current_status += 'Traces for error\n'
+        current_status = self.status["text"]
+        current_status += 'ERROR: Violation of LTL property\n'
+        current_status += 'Traces for error\n'
         isFirstIteration = True
         for trace in self.traces:
             if not isFirstIteration:
-                self.current_status +=  " -> "
+                current_status +=  " -> "
             else:
                 isFirstIteration = False
-                self.current_status +=  "      "
-            self.current_status +=  trace + '\n'
-        self.current_status += '\n\n'
-        self.status["text"] = self.current_status
+                current_status +=  "      "
+            current_status +=  trace + '\n'
+        current_status += '\n\n'
+        self.status["text"] = current_status
 
 def main():
 

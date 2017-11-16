@@ -9,7 +9,7 @@ class OneLeader(object):
     def __init__(self):
         self.receiver_to_sender = {}
         self.node_payload = {}
-        self.init_maps()
+        self.init_receiver_to_sender()
         self.traces = []
         
         signal.signal(signal.SIGINT, self.control_c_handler)
@@ -21,14 +21,14 @@ class OneLeader(object):
         self.mqtt_client.on_disconnect = self.on_disconnect
         self.mqtt_client.on_log = self.on_log
         self.mqtt_topic = 'kappa/one_leader'
-        self.mqtt_client.will_set(self.mqtt_topic, '_____Will of '+self._id+' ____\n\n', 0, False)
+        self.mqtt_client.will_set(self.mqtt_topic, '_____Will of ID Tampering ____\n\n', 0, False)
         self.mqtt_client.connect('sansa.cs.uoregon.edu', '1883', keepalive=300)
         self.mqtt_client.subscribe('kappa/node')
         self.mqtt_client.loop_start()
 
         # Tkinter initialization
         self.root = tk.Tk()
-        self.status = tk.Label(self.root, text="Leader Tampering\n\n", justify="left")
+        self.status = tk.Label(self.root, text="ID Tampering\n\n", justify="left")
         self.status.grid()
         self.root.minsize(400, 400)
         self.root.mainloop()
@@ -52,6 +52,7 @@ class OneLeader(object):
         pass
 
     def on_message(self, client, userdata, msg):
+        self.traces.append(msg.payload)
         tokens = msg.payload.split('.')
         if len(tokens) == 3:
             msg, rid, payload = tokens
@@ -67,19 +68,19 @@ class OneLeader(object):
                     self.node_payload[sender_id] = payload
 
     def gui_update(self):
-        self.current_status = self.status["text"]
-        self.current_status += 'ERROR: Violation of LTL property\n'
-        self.current_status += 'Traces for error\n'
+        current_status = self.status["text"]
+        current_status += 'ERROR: Violation of LTL property\n'
+        current_status += 'Traces for error\n'
         isFirstIteration = True
         for trace in self.traces:
             if not isFirstIteration:
-                self.current_status +=  " -> "
+                current_status +=  " -> "
             else:
                 isFirstIteration = False
-                self.current_status +=  "      "
-            self.current_status +=  trace + '\n'
-        self.current_status += '\n\n'
-        self.status["text"] = self.current_status
+                current_status +=  "      "
+            current_status +=  trace + '\n'
+        current_status += '\n\n'
+        self.status["text"] = current_status
 
     # Utility functions
     def init_receiver_to_sender(self):
